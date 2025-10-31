@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Tarefas</string>
+    <string name="back_button">Botão Voltar</string>
+    <string name="settings_button">Botão Configurações</string>
+</resources>
