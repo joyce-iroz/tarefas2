@@ -16,11 +16,11 @@
 
         <ImageView
             android:id="@+id/btnBack"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:src="@drawable/ic_back"
+            android:layout_width="48dp"
+            android:layout_height="40dp"
             android:layout_alignParentStart="true"
-            android:contentDescription="@string/back_button" />
+            android:contentDescription="@string/back_button"
+            android:src="@drawable/ic_back" />
 
         <ImageView
             android:id="@+id/btnMenu"
