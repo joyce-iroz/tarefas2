@@ -40,7 +40,7 @@ public class MainActivity extends AppCompatActivity implements TaskGroupAdapter.
         // --- Initialize Database and Formats --- //
         databaseHelper = new DatabaseHelper(this);
         dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-        timeFormat = new SimpleDateFormat("h:mm a", Locale.US);
+        timeFormat = new SimpleDateFormat("HH:mm", new Locale("pt", "BR"));
 
         // --- Views --- //
         tvGreeting = findViewById(R.id.tvGreeting);
@@ -77,7 +77,7 @@ public class MainActivity extends AppCompatActivity implements TaskGroupAdapter.
         Calendar c = Calendar.getInstance();
         int hourOfDay = c.get(Calendar.HOUR_OF_DAY);
         String greeting;
-        if (hourOfDay >= 0 && hourOfDay < 12) {
+        if (hourOfDay >= 4 && hourOfDay < 12) {
             greeting = "Bom dia!";
         } else if (hourOfDay >= 12 && hourOfDay < 18) {
             greeting = "Boa tarde!";
@@ -137,7 +137,7 @@ public class MainActivity extends AppCompatActivity implements TaskGroupAdapter.
                         String timeStr = timeFormat.format(c.getTime());
                         etTaskTime.setText(timeStr);
                     },
-                    c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE), false);
+                    c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE), true);
             timePickerDialog.show();
         });
 
