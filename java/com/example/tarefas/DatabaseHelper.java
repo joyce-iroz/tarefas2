@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -59,22 +60,31 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public List<Task> getTasksByDate(String date) {
         List<Task> taskList = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.query(TABLE_TASKS, null, COLUMN_DATE + " = ?", new String[]{date}, null, null, COLUMN_TIME);
-
-        if (cursor.moveToFirst()) {
-            do {
-                Task task = new Task(
-                        cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ID)),
-                        cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DATE)),
-                        cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_TIME)),
-                        cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DESCRIPTION))
-                );
-                task.setCompleted(cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_IS_COMPLETED)) == 1);
-                taskList.add(task);
-            } while (cursor.moveToNext());
+        Cursor cursor = null;
+        try {
+            cursor = db.query(TABLE_TASKS, null, COLUMN_DATE + " = ?", new String[]{date}, null, null, COLUMN_TIME);
+            if (cursor != null && cursor.moveToFirst()) {
+                do {
+                    Task task = new Task(
+                            cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ID)),
+                            cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DATE)),
+                            cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_TIME)),
+                            cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DESCRIPTION))
+                    );
+                    task.setCompleted(cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_IS_COMPLETED)) == 1);
+                    taskList.add(task);
+                } while (cursor.moveToNext());
+            }
+        } catch (Exception e) {
+            Log.e("DatabaseHelper", "Error while trying to get tasks from database", e);
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+            if (db != null) {
+                db.close();
+            }
         }
-        cursor.close();
-        db.close();
         return taskList;
     }
 

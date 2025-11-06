@@ -4,6 +4,9 @@ import android.app.TimePickerDialog;
 import android.database.sqlite.SQLiteException;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -62,31 +65,41 @@ public class TarefasActivity extends AppCompatActivity implements TaskAdapter.On
         btnMenu.setOnClickListener(this::showPopupMenu);
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.main_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int itemId = item.getItemId();
+        if (itemId == R.id.action_delete_all) {
+            new AlertDialog.Builder(this)
+                    .setTitle("Deletar Todas as Tarefas")
+                    .setMessage("Tem certeza que deseja deletar todas as tarefas?")
+                    .setPositiveButton("Deletar", (dialog, which) -> {
+                        databaseHelper.deleteAllTasks();
+                        loadTasksAndScroll();
+                        Toast.makeText(TarefasActivity.this, "Todas as tarefas foram deletadas", Toast.LENGTH_SHORT).show();
+                    })
+                    .setNegativeButton("Cancelar", null)
+                    .show();
+            return true;
+        } else if (itemId == R.id.action_mark_all_done) {
+            databaseHelper.markAllTasksAsCompleted();
+            loadTasksAndScroll();
+            Toast.makeText(this, "Todas as tarefas foram marcadas como concluídas", Toast.LENGTH_SHORT).show();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
     private void showPopupMenu(View view) {
         PopupMenu popupMenu = new PopupMenu(this, view);
-        popupMenu.getMenuInflater().inflate(R.menu.menu_tarefas, popupMenu.getMenu());
-        popupMenu.setOnMenuItemClickListener(item -> {
-            int itemId = item.getItemId();
-            if (itemId == R.id.action_delete_all) {
-                new AlertDialog.Builder(this)
-                        .setTitle("Deletar Todas as Tarefas")
-                        .setMessage("Tem certeza que deseja deletar todas as tarefas?")
-                        .setPositiveButton("Deletar", (dialog, which) -> {
-                            databaseHelper.deleteAllTasks();
-                            loadTasksAndScroll();
-                            Toast.makeText(TarefasActivity.this, "Todas as tarefas foram deletadas", Toast.LENGTH_SHORT).show();
-                        })
-                        .setNegativeButton("Cancelar", null)
-                        .show();
-                return true;
-            } else if (itemId == R.id.action_mark_all_done) {
-                databaseHelper.markAllTasksAsCompleted();
-                loadTasksAndScroll();
-                Toast.makeText(this, "Todas as tarefas foram marcadas como concluídas", Toast.LENGTH_SHORT).show();
-                return true;
-            }
-            return false;
-        });
+        popupMenu.getMenuInflater().inflate(R.menu.main_menu, popupMenu.getMenu());
+        popupMenu.setOnMenuItemClickListener(this::onOptionsItemSelected);
         popupMenu.show();
     }
 
