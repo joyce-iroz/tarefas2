@@ -12,10 +12,11 @@ public class Task {
         this.date = date;
         this.time = time;
         this.description = description;
-        this.isCompleted = false; // Default to not completed
+        this.isCompleted = false;
     }
 
-    // Getters and Setters
+
+    // getter e setter das variáveis
     public int getId() {
         return id;
     }
