@@ -11,7 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 
-public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder> {
+public class TaskAdaptativo extends RecyclerView.Adapter<TaskAdaptativo.TaskViewHolder> {
 
     private List<Task> taskList;
     private OnTaskClickListener listener;
@@ -21,7 +21,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         void onDeleteClick(Task task, int position);
     }
 
-    public TaskAdapter(List<Task> taskList, OnTaskClickListener listener) {
+    public TaskAdaptativo(List<Task> taskList, OnTaskClickListener listener) {
         this.taskList = taskList;
         this.listener = listener;
     }
@@ -45,22 +45,22 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
 
         holder.tvTime.setText(task.getTime());
 
-        // A 'real' task is one that has a description. Placeholders do not.
+        // diferencia uma task real de uma falsa
         boolean isRealTask = task.getDescription() != null && !task.getDescription().isEmpty();
 
         if (isRealTask) {
-            // --- CONFIGURE FOR A REAL TASK ---
+            // configurações da task real
             holder.cardContainer.setVisibility(View.VISIBLE);
             holder.tvDescription.setText(task.getDescription());
 
-            // Handle the completed state (strikethrough text)
+            // cuida da parte da task com status de 'completa'
             if (task.isCompleted()) {
                 holder.tvDescription.setPaintFlags(holder.tvDescription.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
             } else {
                 holder.tvDescription.setPaintFlags(holder.tvDescription.getPaintFlags() & (~Paint.STRIKE_THRU_TEXT_FLAG));
             }
 
-            // Set listeners for the buttons
+            
             holder.btnCheck.setOnClickListener(v -> {
                 if (listener != null) {
                     listener.onCheckClick(task, position);
@@ -74,11 +74,10 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
             });
 
         } else {
-            // --- CONFIGURE FOR AN EMPTY SLOT ---
-            // Hide the card
+          
             holder.cardContainer.setVisibility(View.INVISIBLE);
             
-            // Clean up previous state to prevent bugs from view recycling
+            // limpa os status de completo para evitar duplicação 
             holder.tvDescription.setText("");
             holder.tvDescription.setPaintFlags(0);
             holder.btnCheck.setOnClickListener(null);

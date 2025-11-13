@@ -22,11 +22,11 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
-public class MainActivity extends AppCompatActivity implements TaskGroupAdapter.OnGroupClickListener {
+public class Home extends AppCompatActivity implements TaskGroupAdaptativo.OnGroupClickListener {
 
-    private List<TaskGroup> taskGroups;
-    private TaskGroupAdapter adapter;
-    private DatabaseHelper databaseHelper;
+    private List<TaskGrupo> taskGroups;
+    private TaskGroupAdaptativo adapter;
+    private baseDados baseDados;
     private SimpleDateFormat dateFormat, timeFormat;
 
     private TextView tvPendingTasks, tvTotalCompleted, tvProgressPercentage;
@@ -35,14 +35,14 @@ public class MainActivity extends AppCompatActivity implements TaskGroupAdapter.
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_home);
 
-        // --- Initialize Database and Formats --- //
-        databaseHelper = new DatabaseHelper(this);
+        // Inicializa a base de dados e os formatadores de data/hora
+        baseDados = new baseDados(this);
         dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
         timeFormat = new SimpleDateFormat("h:mm a", Locale.US);
 
-        // --- Views --- //
+        // Liga os componentes visuais do layout
         tvPendingTasks = findViewById(R.id.tvPendingTasks);
         tvTotalCompleted = findViewById(R.id.tvTotalCompleted);
         tvProgressPercentage = findViewById(R.id.tvProgressPercentage);
@@ -51,15 +51,16 @@ public class MainActivity extends AppCompatActivity implements TaskGroupAdapter.
         FloatingActionButton btnAddTask = findViewById(R.id.btnAddTask);
         RecyclerView recyclerTaskGroups = findViewById(R.id.recyclerTaskGroups);
 
-        // --- Setup Listeners --- //
+        // Botão para abrir a lista completa de tarefas
         tvSeeAll.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, TarefasActivity.class);
+            Intent intent = new Intent(Home.this, Tarefas.class);
             startActivity(intent);
         });
 
+
         btnAddTask.setOnClickListener(v -> showAddTaskDialog());
 
-        // --- Setup Task Groups RecyclerView --- //
+        
         recyclerTaskGroups.setLayoutManager(new GridLayoutManager(this, 2));
     }
 
@@ -69,25 +70,28 @@ public class MainActivity extends AppCompatActivity implements TaskGroupAdapter.
         updateUI();
     }
 
+    /**
+     * Atualiza as informações exibidas na tela principal (tarefas do dia, progresso etc.).
+     */
     private void updateUI() {
         String today = dateFormat.format(Calendar.getInstance().getTime());
 
-        // --- Update Header --- //
-        int pendingCount = databaseHelper.getTasksCount(today, false);
+        // Atualiza cabeçalho com contagem de pendentes
+        int pendingCount = baseDados.getTasksCount(today, false);
         tvPendingTasks.setText(String.format(Locale.getDefault(), "%d atividades pendentes", pendingCount));
 
-        // --- Update Task Groups --- //
-        List<Task> tasksFromDb = databaseHelper.getTasksByDate(today);
+        // Carrega as tarefas de hoje do banco e agrupa para exibição
+        List<Task> tasksFromDb = baseDados.getTasksByDate(today);
         this.taskGroups = tasksFromDb.stream()
-                .map(task -> new TaskGroup(task.getId(), task.getDescription(), task.getTime(), "1 tarefa", task.isCompleted()))
+                .map(task -> new TaskGrupo(task.getId(), task.getDescription(), task.getTime(), "1 tarefa", task.isCompleted()))
                 .collect(Collectors.toList());
-        adapter = new TaskGroupAdapter(taskGroups, this);
+        adapter = new TaskGroupAdaptativo(taskGroups, this);
         ((RecyclerView) findViewById(R.id.recyclerTaskGroups)).setAdapter(adapter);
 
-        // --- Update Progress Card --- //
-        int totalToday = databaseHelper.getTasksCount(today, null);
-        int completedToday = databaseHelper.getTasksCount(today, true);
-        int totalCompleted = databaseHelper.getTotalCompletedTasks();
+        // Atualiza barra de progresso dinâmica
+        int totalToday = baseDados.getTasksCount(today, null);
+        int completedToday = baseDados.getTasksCount(today, true);
+        int totalCompleted = baseDados.getTotalCompletedTasks();
 
         int progressPercentage = 0;
         if (totalToday > 0) {
@@ -99,6 +103,7 @@ public class MainActivity extends AppCompatActivity implements TaskGroupAdapter.
         tvTotalCompleted.setText(String.format(Locale.getDefault(), "%d+ atividades feitas", totalCompleted));
     }
 
+  
     private void showAddTaskDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_add_task, null);
@@ -113,21 +118,28 @@ public class MainActivity extends AppCompatActivity implements TaskGroupAdapter.
         AlertDialog dialog = builder.create();
         etTaskDate.setText(dateFormat.format(Calendar.getInstance().getTime()));
 
+   
         etTaskTime.setOnClickListener(v -> {
             Calendar c = Calendar.getInstance();
             TimePickerDialog timePickerDialog = new TimePickerDialog(
-                    MainActivity.this,
+                    Home.this,
                     (view, hourOfDay, minute) -> {
                         c.set(Calendar.HOUR_OF_DAY, hourOfDay);
                         c.set(Calendar.MINUTE, minute < 30 ? 0 : 30);
                         String timeStr = timeFormat.format(c.getTime());
                         etTaskTime.setText(timeStr);
                     },
-                    c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE), false);
+                    c.get(Calendar.HOUR_OF_DAY),
+                    c.get(Calendar.MINUTE),
+                    false
+            );
             timePickerDialog.show();
         });
 
+ 
         btnCancel.setOnClickListener(v -> dialog.dismiss());
+
+
         btnSave.setOnClickListener(v -> {
             String date = etTaskDate.getText().toString().trim();
             String time = etTaskTime.getText().toString().trim();
@@ -137,9 +149,10 @@ public class MainActivity extends AppCompatActivity implements TaskGroupAdapter.
                 Toast.makeText(this, "Preencha todos os campos", Toast.LENGTH_SHORT).show();
                 return;
             }
+
             Task newTask = new Task(0, date, time, description);
-            databaseHelper.addTask(newTask);
-            updateUI(); // Refresh the Home screen
+            baseDados.addTask(newTask);
+            updateUI();
             Toast.makeText(this, "Tarefa adicionada", Toast.LENGTH_SHORT).show();
             dialog.dismiss();
         });
@@ -147,21 +160,24 @@ public class MainActivity extends AppCompatActivity implements TaskGroupAdapter.
         dialog.show();
     }
 
+    /**
+     * Evento disparado quando o usuário clica em um grupo de tarefas.
+     * Marca ou desmarca o status de concluído e atualiza a tela.
+     */
     @Override
     public void onGroupClick(int position) {
-        // 1. Get the clicked group and its original ID
-        TaskGroup clickedGroup = taskGroups.get(position);
+        TaskGrupo clickedGroup = taskGroups.get(position);
         int taskId = clickedGroup.getId();
         boolean newStatus = !clickedGroup.isCompleted();
 
-        // 2. Update the database
-        databaseHelper.updateTaskCompletionStatus(taskId, newStatus);
+      
+        baseDados.updateTaskCompletionStatus(taskId, newStatus);
 
-        // 3. Update the local list and notify the adapter
+     
         clickedGroup.setCompleted(newStatus);
         adapter.notifyItemChanged(position);
 
-        // 4. Also, refresh the progress card
+
         updateUI();
     }
 }
