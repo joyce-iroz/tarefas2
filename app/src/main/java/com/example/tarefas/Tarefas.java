@@ -23,14 +23,14 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class TarefasActivity extends AppCompatActivity implements TaskAdapter.OnTaskClickListener {
+public class Tarefas extends AppCompatActivity implements TaskAdaptativo.OnTaskClickListener {
 
     private RecyclerView recyclerViewTasks;
     private FloatingActionButton btnAddTask;
     private TextView tvDate, tvTaskCount;
-    private TaskAdapter taskAdapter;
+    private TaskAdaptativo TaskAdaptativo;
     private List<Task> taskList;
-    private DatabaseHelper databaseHelper;
+    private baseDados baseDados;
     private Calendar calendar;
     private SimpleDateFormat dateFormat, monthFormat, timeFormat;
 
@@ -46,7 +46,7 @@ public class TarefasActivity extends AppCompatActivity implements TaskAdapter.On
         ImageView btnBack = findViewById(R.id.btnBack);
         ImageView btnSettings = findViewById(R.id.btnSettings);
 
-        databaseHelper = new DatabaseHelper(this);
+        baseDados = new baseDados(this);
         calendar = Calendar.getInstance();
         dateFormat = new SimpleDateFormat("yyyy-MM-dd", new Locale("pt", "BR"));
         monthFormat = new SimpleDateFormat("MMMM dd", new Locale("pt", "BR"));
@@ -69,7 +69,7 @@ public class TarefasActivity extends AppCompatActivity implements TaskAdapter.On
 
     private void loadTasksAndScroll() {
         String currentDate = dateFormat.format(calendar.getTime());
-        Map<String, List<Task>> tasksByTime = databaseHelper.getTasksByDate(currentDate).stream()
+        Map<String, List<Task>> tasksByTime = baseDados.getTasksByDate(currentDate).stream()
                 .collect(Collectors.groupingBy(Task::getTime));
 
         List<Task> fullDayTaskList = new ArrayList<>();
@@ -84,18 +84,18 @@ public class TarefasActivity extends AppCompatActivity implements TaskAdapter.On
             if (tasksForSlot != null && !tasksForSlot.isEmpty()) {
                 fullDayTaskList.addAll(tasksForSlot);
             } else {
-                // Add a placeholder for empty slots to maintain the timeline
+               
                 fullDayTaskList.add(new Task(-1, currentDate, timeSlot, null));
             }
             tempCal.add(Calendar.MINUTE, 30);
         }
         this.taskList = fullDayTaskList;
 
-        if (taskAdapter == null) {
-            taskAdapter = new TaskAdapter(this.taskList, this);
-            recyclerViewTasks.setAdapter(taskAdapter);
+        if (TaskAdaptativo == null) {
+            TaskAdaptativo = new TaskAdaptativo(this.taskList, this);
+            recyclerViewTasks.setAdapter(TaskAdaptativo);
         } else {
-            taskAdapter.setTasks(this.taskList);
+            TaskAdaptativo.setTasks(this.taskList);
         }
 
         long actualTaskCount = tasksByTime.values().stream().mapToLong(List::size).sum();
@@ -133,10 +133,10 @@ public class TarefasActivity extends AppCompatActivity implements TaskAdapter.On
         etTaskTime.setOnClickListener(v -> {
             Calendar c = Calendar.getInstance();
             TimePickerDialog timePickerDialog = new TimePickerDialog(
-                    TarefasActivity.this,
+                    Tarefas.this,
                     (view, hourOfDay, minute) -> {
                         c.set(Calendar.HOUR_OF_DAY, hourOfDay);
-                        c.set(Calendar.MINUTE, minute < 30 ? 0 : 30); // RE-ADDED ROUNDING TO FIX BUG
+                        c.set(Calendar.MINUTE, minute < 30 ? 0 : 30);
                         String timeStr = timeFormat.format(c.getTime());
                         etTaskTime.setText(timeStr);
                     },
@@ -155,7 +155,7 @@ public class TarefasActivity extends AppCompatActivity implements TaskAdapter.On
                 return;
             }
             Task newTask = new Task(0, date, time, description);
-            databaseHelper.addTask(newTask);
+            baseDados.addTask(newTask);
             loadTasksAndScroll();
             Toast.makeText(this, "Tarefa adicionada", Toast.LENGTH_SHORT).show();
             dialog.dismiss();
@@ -167,7 +167,7 @@ public class TarefasActivity extends AppCompatActivity implements TaskAdapter.On
     @Override
     public void onCheckClick(Task task, int position) {
         task.setCompleted(!task.isCompleted());
-        databaseHelper.updateTaskCompletionStatus(task.getId(), task.isCompleted());
+        baseDados.updateTaskCompletionStatus(task.getId(), task.isCompleted());
         loadTasksAndScroll();
     }
 
@@ -177,9 +177,9 @@ public class TarefasActivity extends AppCompatActivity implements TaskAdapter.On
                 .setTitle("Deletar Tarefa")
                 .setMessage("Tem certeza que deseja deletar esta tarefa?")
                 .setPositiveButton("Deletar", (dialog, which) -> {
-                    databaseHelper.deleteTask(task.getId());
+                    baseDados.deleteTask(task.getId());
                     loadTasksAndScroll();
-                    Toast.makeText(TarefasActivity.this, "Tarefa deletada", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(Tarefas.this, "Tarefa deletada", Toast.LENGTH_SHORT).show();
                 })
                 .setNegativeButton("Cancelar", null)
                 .show();

@@ -9,43 +9,49 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 
-public class TaskGroupAdapter extends RecyclerView.Adapter<TaskGroupAdapter.TaskGroupViewHolder> {
 
-    private List<TaskGroup> taskGroups;
+public class TaskGroupAdaptativo extends RecyclerView.Adapter<TaskGroupAdaptativo.TaskGrupoViewHolder> {
+
+    private List<TaskGrupo> taskGroups;
     private OnGroupClickListener listener;
 
-    // Interface para comunicar o clique para a MainActivity
+   
     public interface OnGroupClickListener {
         void onGroupClick(int position);
     }
 
-    public TaskGroupAdapter(List<TaskGroup> taskGroups, OnGroupClickListener listener) {
+    /**
+      Construtor do adaptador.
+     * @param taskGroups lista de grupos de tarefas
+     * @param listener listener para capturar o clique em um grupo
+     */
+    public TaskGroupAdaptativo(List<TaskGrupo> taskGroups, OnGroupClickListener listener) {
         this.taskGroups = taskGroups;
         this.listener = listener;
     }
 
     @NonNull
     @Override
-    public TaskGroupViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public TaskGrupoViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_task_group, parent, false);
-        return new TaskGroupViewHolder(view);
+        return new TaskGrupoViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull TaskGroupViewHolder holder, int position) {
-        TaskGroup taskGroup = taskGroups.get(position);
+    public void onBindViewHolder(@NonNull TaskGrupoViewHolder holder, int position) {
+        TaskGrupo taskGroup = taskGroups.get(position);
         holder.tvGroupTitle.setText(taskGroup.getTitle());
         holder.tvGroupTime.setText(taskGroup.getTime());
         holder.tvGroupTaskCount.setText(taskGroup.getTaskCount());
 
-        // Aplica ou remove o risco do texto baseado no estado da tarefa
+        // aplica ou remove o risco do texto com base no estado de conclusão do grupo
         if (taskGroup.isCompleted()) {
             holder.tvGroupTitle.setPaintFlags(holder.tvGroupTitle.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
         } else {
             holder.tvGroupTitle.setPaintFlags(holder.tvGroupTitle.getPaintFlags() & (~Paint.STRIKE_THRU_TEXT_FLAG));
         }
 
-        // Define o listener para o clique no card inteiro
+        
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onGroupClick(position);
@@ -58,10 +64,11 @@ public class TaskGroupAdapter extends RecyclerView.Adapter<TaskGroupAdapter.Task
         return taskGroups.size();
     }
 
-    public static class TaskGroupViewHolder extends RecyclerView.ViewHolder {
+
+    public static class TaskGrupoViewHolder extends RecyclerView.ViewHolder {
         TextView tvGroupTitle, tvGroupTime, tvGroupTaskCount;
 
-        public TaskGroupViewHolder(@NonNull View itemView) {
+        public TaskGrupoViewHolder(@NonNull View itemView) {
             super(itemView);
             tvGroupTitle = itemView.findViewById(R.id.tvGroupTitle);
             tvGroupTime = itemView.findViewById(R.id.tvGroupTime);

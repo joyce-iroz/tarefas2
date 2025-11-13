@@ -5,9 +5,9 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@android:color/white"
-    tools:context=".TarefasActivity">
+    tools:context=".Tarefas">
 
-    <!-- Top Header -->
+  
     <RelativeLayout
         android:id="@+id/header"
         android:layout_width="match_parent"
@@ -30,7 +30,6 @@
             android:src="@drawable/ic_more_vert"
             android:contentDescription="Menu" />
 
-        <!-- Container para Tarefas e de Hoje! na mesma linha -->
         <LinearLayout
             android:id="@+id/titleContainer"
             android:layout_width="wrap_content"
@@ -39,7 +38,7 @@
             android:layout_marginTop="16dp"
             android:orientation="vertical">
 
-            <!-- Tarefas (48sp, negrito) -->
+           
             <TextView
                 android:id="@+id/tvTitle"
                 android:layout_width="wrap_content"
@@ -49,7 +48,7 @@
                 android:textSize="48sp"
                 android:textStyle="bold" />
 
-            <!-- de Hoje! (36sp) -->
+         
             <TextView
                 android:id="@+id/tvSubtitle"
                 android:layout_width="wrap_content"
@@ -91,7 +90,6 @@
         android:layout_below="@id/header"
         android:layout_above="@+id/bottom_bar" />
 
-    <!-- Custom Add Button -->
     <RelativeLayout
         android:id="@+id/bottom_bar"
         android:layout_width="match_parent"
